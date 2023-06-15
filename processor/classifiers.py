@@ -215,7 +215,7 @@ def download_models() -> bool:
     """
     try:
         model_list = update_model_list()
-        logger.info("Downloading models:")
+        logger.info("Downloading {} models:".format(len(model_list)))
         for m in model_list:
             logger.info("  {} - {}".format(m['id'], m['name']))
             for u in m['model_1_files']:
@@ -225,6 +225,7 @@ def download_models() -> bool:
         return True
     except Exception as e:
         logger.error(f"Couldn't get the models - bailing out cowardly {e}")
+        logger.exception(e)
     return False
 
 
