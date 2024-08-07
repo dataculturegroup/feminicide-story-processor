@@ -4,6 +4,7 @@ import sys
 from typing import Dict
 
 import mediacloud.api
+from celery import signals
 from dotenv import load_dotenv
 from sentry_sdk import init
 from sentry_sdk.integrations.logging import ignore_logger
@@ -72,23 +73,32 @@ if BROKER_URL is None:
     BROKER_URL = "db+sqlite:///results.sqlite"
 # logger.info("  Queue at {}".format(BROKER_URL))
 
-SENTRY_DSN = os.environ.get("SENTRY_DSN", None)  # optional
-if SENTRY_DSN:
-    from sentry_sdk.integrations.celery import CeleryIntegration
 
-    init(
-        dsn=SENTRY_DSN,
-        release=VERSION,
-        before_send=before_send,
-        integrations=[CeleryIntegration()],
-    )
-    ignore_logger("scrapy.core.scraper")
-    ignore_logger("scrapy.downloadermiddlewares.retry")
-    ignore_logger("trafilatura.core")
-    ignore_logger("htmldate.utils")
-    logger.info("  SENTRY_DSN: {}".format(SENTRY_DSN))
-# else:
-#    logger.info("  Not logging errors to Sentry")
+@signals.beat_init.connect
+@signals.celeryd_init.connect
+def init_sentry(**kwargs):
+    SENTRY_DSN = os.environ.get("SENTRY_DSN", None)  # optional
+    if SENTRY_DSN:
+        from sentry_sdk.integrations.celery import CeleryIntegration
+
+        init(
+            dsn=SENTRY_DSN,
+            release=VERSION,
+            before_send=before_send,
+            enable_tracing=True,
+            traces_sample_rate=1.0,
+            profiles_sample_rate=1.0,
+            integrations=[CeleryIntegration(monitor_beat_tasks=True)],
+        )
+        ignore_logger("scrapy.core.scraper")
+        ignore_logger("scrapy.downloadermiddlewares.retry")
+        ignore_logger("trafilatura.core")
+        ignore_logger("htmldate.utils")
+        logger.info("  SENTRY_DSN: {}".format(SENTRY_DSN))
+    # else:
+    # logger.info("  Not logging errors to Sentry")
+
+init_sentry()
 
 FEMINICIDE_API_URL = os.environ.get("FEMINICIDE_API_URL", None)
 if FEMINICIDE_API_URL is None:
