@@ -25,7 +25,7 @@ import scripts.tasks as tasks
 from processor import NEWSDATA_API_KEY
 from processor.classifiers import download_models
 
-MAX_QUERY_LENGTH = 100
+MAX_QUERY_LENGTH = 512
 
 DAY_OFFSET = 0  # they claim to have pseudo-relatime data
 DAY_WINDOW = (
@@ -232,6 +232,7 @@ if __name__ == "__main__":
     projects_list = [
         p for p in all_projects_list if len(p["search_terms"]) < MAX_QUERY_LENGTH
     ]
+    logger.info(f"  {len(projects_list)}/{len(all_projects_list)} projects to process")
 
     # 2. process all the projects and queue results by project
     logger.info("Processing project")
