@@ -27,6 +27,7 @@ class Story(Base):
     queued_date: Mapped[dt.datetime] = mapped_column(DateTime)
     processed_date: Mapped[dt.datetime] = mapped_column(DateTime)
     posted_date: Mapped[dt.datetime] = mapped_column(DateTime)
+    # ToDo: need to add a migration so this is Nullable
     above_threshold: Mapped[bool] = mapped_column(Boolean)
     source: Mapped[str] = mapped_column(String)
     url: Mapped[str] = mapped_column(String)

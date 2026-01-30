@@ -166,6 +166,8 @@ def classify_and_post_worker(self, project: Dict, stories: List[Dict]):
                     json.dump(stories_to_send, f, ensure_ascii=False, indent=4)
             # mark the stories in the local DB that we intend to send
             stories_db.update_stories_above_threshold(session, stories_to_send)
+            # ToDo: if we change how stories are created to not have a threshold value set at init, then here we
+            #  would need to also mark stories below threshold as such in the local DB
             # now actually post them (in chunks just to make sure no single page is too big and causes a HTTP 413 error)
             logger.info(
                 "{}: {} stories to post".format(project["id"], len(stories_to_send))
