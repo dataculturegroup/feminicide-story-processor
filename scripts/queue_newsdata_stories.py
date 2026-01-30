@@ -32,11 +32,13 @@ DAY_WINDOW = (
     2  # our max stories is small here, so don't look for stories that are too old
 )
 
-# we have 20,000 credits per month, at 50 articles per credit that's about 30,000 articles/day we can fetch
-# Oct'25 we have about 100 projects, that that's only 300 per project if they are all fully live and populated
-# but they're not so let's try 500 for now
+# We have 20,000 credits each month (645 per day). So at 5 credits per API hit that's ~130 hits / day,
+# With 85 projects (below 512 character limit), we have to avg 2 hits / project.
 PAGE_SIZE = 50  # per API spec that is max
-MAX_STORIES_PER_PROJECT = 500  # anyway we can't process all the stories for queries that are too big because we have to fetch full text
+AVG_HITS_PER_PROJECT = 3  # we want to aim for this many hits per project
+MAX_STORIES_PER_PROJECT = (
+    PAGE_SIZE * AVG_HITS_PER_PROJECT * 1.5
+)  # try to hit avg, because we'll only get this many on a few projects
 
 # Rate limit is  1800 credits every 15 minute, which is 90,000 articles / 15 minutes. That's more than we can
 # fetch each day given our account level, so we can set a low rate limit here
