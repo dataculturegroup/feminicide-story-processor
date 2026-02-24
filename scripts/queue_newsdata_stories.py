@@ -42,7 +42,7 @@ MAX_STORIES_PER_PROJECT = (
 
 # Rate limit is  1800 credits every 15 minute, which is 90,000 articles / 15 minutes. That's more than we can
 # fetch each day given our account level, so we can set a low rate limit here
-MAX_CALLS_PER_SEC = 0.33333  # throttle calls to NewsData to avoid rate limiting
+MAX_CALLS_PER_SEC = 1  # throttle calls to NewsData to avoid rate limiting
 DELAY_SECS = 1 / MAX_CALLS_PER_SEC  # may need to be further adjusted
 
 # initialize api client, maybe do this in processor initialization?
