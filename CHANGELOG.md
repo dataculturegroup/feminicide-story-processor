@@ -3,6 +3,10 @@ Change Log
 
 Here is a history of what was changed in each version. 
 
+### v4.9.2
+
+* Tweak rate limit on newsdata.io
+
 ### v4.9.1
 
 * fix quota use on newsdata.io
