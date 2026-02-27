@@ -33,11 +33,11 @@ DAY_WINDOW = (
 )
 
 # We have 20,000 credits each month (645 per day). So at 5 credits per API hit that's ~130 hits / day,
-# With 85 projects (below 512 character limit), we have to avg 2 hits / project.
+# With 85 projects (below 512 character limit), we have to avg < 2 hits / project.
 PAGE_SIZE = 50  # per API spec that is max
-AVG_HITS_PER_PROJECT = 3  # we want to aim for this many hits per project
+AVG_HITS_PER_PROJECT = 1  # we want to aim for this many hits per project
 MAX_STORIES_PER_PROJECT = (
-    PAGE_SIZE * AVG_HITS_PER_PROJECT * 1.5
+    PAGE_SIZE * AVG_HITS_PER_PROJECT
 )  # try to hit avg, because we'll only get this many on a few projects
 
 # Rate limit is  1800 credits every 15 minute, which is 90,000 articles / 15 minutes. That's more than we can
@@ -172,6 +172,9 @@ def _project_story_worker(args: Dict) -> Dict:
                     )
                     more_stories = page_token is not None
                 time.sleep(DELAY_SECS)
+                if len(page_of_stories) < PAGE_SIZE:
+                    # got back less than a full page, no more stories to fetch (don't waste an API hit)
+                    more_stories = False
             else:
                 more_stories = False
         except Exception as e:
