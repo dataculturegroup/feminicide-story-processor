@@ -3,6 +3,10 @@ Change Log
 
 Here is a history of what was changed in each version. 
 
+### v4.9.4
+
+* Upgrade Media Cloud package to latest 
+
 ### v4.9.3
 
 * Dial back newsdata.io even more, and don't waste hits
