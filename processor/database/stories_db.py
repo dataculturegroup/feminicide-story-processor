@@ -61,6 +61,7 @@ def add_stories(
         db_story.project_id = project["id"]
         db_story.model_id = project["language_model_id"]
         db_story.queued_date = now
+        # ToDo: this should really be changed so it doesn't mark either until it is run against a model
         db_story.above_threshold = False
         discovered_story["db_story"] = db_story
     # now insert in batch to the database
@@ -345,9 +346,7 @@ def project_binned_model_scores(session: Session, project_id: int) -> List:
         where project_id={} and model_score is not NULL
         group by 1
         order by 1
-    """.format(
-        project_id
-    )
+    """.format(project_id)
     return _run_query(session, query)
 
 
