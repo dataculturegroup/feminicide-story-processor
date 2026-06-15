@@ -6,6 +6,7 @@ from json.decoder import JSONDecodeError
 from typing import Dict, List
 
 import requests
+from celery.signals import task_prerun
 from sqlalchemy.orm.session import Session
 
 import processor.database as database
@@ -15,6 +16,7 @@ import processor.projects as projects
 import processor.util as util
 from processor import path_to_log_dir
 from processor.celery import app
+from processor.classifiers import download_models, get_model_list
 
 logger = logging.getLogger(__name__)  # get_task_logger(__name__)
 logFormatter = logging.Formatter(
@@ -95,7 +97,7 @@ def add_entities_to_stories(stories: List[Dict]):
 
 
 @app.task(serializer="json", bind=True)
-def classify_and_post_worker(self, project: Dict, stories: List[Dict]):
+def classify_and_post_worker(self, project: Dict, stories: List[Dict], **kwargs):
     """
     Take a page of stories matching a project and run them through the classifier for that project.
     :param self:
@@ -202,3 +204,39 @@ def classify_and_post_worker(self, project: Dict, stories: List[Dict]):
         )
         logger.exception(exc)
         raise self.retry(exc=exc)
+
+
+@task_prerun.connect(sender=classify_and_post_worker)
+def ensure_model_files(
+    sender=None, task_id=None, task=None, args=None, kwargs=None, **extras
+):
+    """
+    Ensure model files are available and up-to-date before the classification task runs.
+    """
+    logger.info("Making sure are models are up-to-date before classification")
+    project = kwargs.get("project")
+    if not project:
+        return
+
+    model_id = project.get("language_model_id")
+    project_title = project.get("title")
+    models = get_model_list()
+    matching_models = [m for m in models if int(m["id"]) == int(model_id)]
+    if not matching_models:
+        logger.warning(
+            f"No models found matching ID {model_id} for project {project_title}."
+        )
+        return False
+
+    for model in matching_models:
+        model_name = model.get("name", "")
+        expected_name = project.get("language_model")
+        if model_name != expected_name:
+            logger.warning(
+                f"Model {model_name} needs to be updated (expected version: {expected_name})."
+            )
+            download_models()
+            logger.info("Models updated successfully.")
+            return False
+        logger.info(f"Model {model_name} up to date.")
+    return True
